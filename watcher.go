@@ -22,7 +22,7 @@ func NewWatcher(interval time.Duration) *Watcher {
 
 // Start begins watching for track changes
 func (w *Watcher) Start() {
-	fmt.Println("Started watching for track changes...")
+	fmt.Println()
 
 	ticker := time.NewTicker(w.interval)
 	defer ticker.Stop()
@@ -53,13 +53,15 @@ func (w *Watcher) checkAndUpdate() {
 
 	// Check if track has changed
 	if w.hasTrackChanged(track) {
-		fmt.Printf("Track changed: %s - %s\n", track.Artist, track.Title)
+		status := "▶"
+		if !track.IsPlaying {
+			status = "⏸"
+		}
+		fmt.Printf("%s %s - %s\n", status, track.Artist, track.Title)
 
 		// Save to files
 		if err := SaveTrackToFile(track); err != nil {
-			fmt.Printf("Error saving track: %v\n", err)
-		} else {
-			fmt.Printf("Updated files: ✓")
+			fmt.Printf("   ✗ Error saving: %v\n", err)
 		}
 
 		w.lastTrack = track
