@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"os/exec"
 	"runtime"
 )
 
@@ -28,13 +30,35 @@ func GetCurrentTrack() (*Track, error) {
 
 // getCurrentTrackWindows reads metadata from Windows Media Control API
 func getCurrentTrackWindows() (*Track, error) {
-	// Placeholder for now - we'll implement this next
+	// PowerShell command to get current media session info
+	// This reads from Windows' Global System Media Transport Controls (GSMTC)
+	psCommand := `Add-Type -AssemblyName System.Runtime.WindowsRuntime; $asTaskGeneric = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object { $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation' + [char]0x0060 + '1' })[0]; Function Await($WinRtTask, $ResultType) { $asTask = $asTaskGeneric.MakeGenericMethod($ResultType); $netTask = $asTask.Invoke($null, @($WinRtTask)); $netTask.Wait(-1) | Out-Null; $netTask.Result }; [Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager,Windows.Media.Control,ContentType=WindowsRuntime] | Out-Null; $sessionManager = Await ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager]::RequestAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager]); $session = $sessionManager.GetCurrentSession(); if ($session) { $mediaProperties = Await ($session.TryGetMediaPropertiesAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionMediaProperties]); $playbackInfo = $session.GetPlaybackInfo(); $output = @{ Title = $mediaProperties.Title; Artist = $mediaProperties.Artist; Album = $mediaProperties.AlbumTitle; IsPlaying = ($playbackInfo.PlaybackStatus -eq 4) }; $output | ConvertTo-Json -Compress }`
+
+	// Execute PowerShell command
+	cmd := exec.Command("powershell", "-NoProfile", "-NonInteractive", "-Command", psCommand)
+	output, err := cmd.Output()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get media info: %v", err)
+	}
+
+	// Parse JSON output
+	var result struct {
+		Title     string `json:"Title"`
+		Artist    string `json:"Artist"`
+		Album     string `json:"Album"`
+		IsPlaying bool   `json:"IsPlaying"`
+	}
+
+	if err := json.Unmarshal(output, &result); err != nil {
+		return nil, fmt.Errorf("failed to parse media info: %v", err)
+	}
+
 	return &Track{
-		Title:     "Test Song",
-		Artist:    "Test Artist",
-		Album:     "Test Album",
-		Artwork:   "",
-		IsPlaying: true,
+		Title:     result.Title,
+		Artist:    result.Artist,
+		Album:     result.Album,
+		Artwork:   "", // We'll add artwork download later
+		IsPlaying: result.IsPlaying,
 	}, nil
 }
 
