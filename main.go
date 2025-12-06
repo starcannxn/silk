@@ -25,10 +25,17 @@ func main() {
 	port := "8080"
 	url := fmt.Sprintf("http://localhost:%s", port)
 
-	fmt.Printf("Silk is running on %s\n", url)
-	fmt.Println("Auto-updating track info every 2 seconds...")
-	fmt.Println("Files are saved to the 'output' folder")
-	fmt.Println("_______________________")
+	// Nice startup message
+	fmt.Println("╔════════════════════════════════════════╗")
+	fmt.Println("║          Silk - Now Playing            ║")
+	fmt.Println("╚════════════════════════════════════════╝")
+	fmt.Println()
+	fmt.Printf("→ Server running at %s\n", url)
+	fmt.Println("→ Auto-updating every 3 seconds")
+	fmt.Println("→ Files saved to './output' folder")
+	fmt.Println()
+	fmt.Println("Press Ctrl+C to stop")
+	fmt.Println("────────────────────────────────────────")
 
 	// Auto-open browser after a short delay
 	go OpenBrowserDelayed(url, 500*time.Millisecond)
