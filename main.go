@@ -23,9 +23,14 @@ func main() {
 	http.Handle("/", http.FileServer(http.Dir("./web")))
 
 	port := "8080"
-	fmt.Printf("Silk is running on http://localhost:%s\n", port)
+	url := fmt.Sprintf("http://localhost:%s", port)
+
+	fmt.Printf("Silk is running on %s\n", url)
 	fmt.Println("Auto-updating track info every 3 seconds...")
 	fmt.Println("Files are saved to the 'output' folder")
+
+	// Auto-open browser after a short delay
+	go OpenBrowserDelayed(url, 500*time.Millisecond)
 
 	// Start the web server
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
