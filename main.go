@@ -5,17 +5,27 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 )
 
 func main() {
+	// Start the watcher in a goroutine (runs in background)
+	watcher := NewWatcher(3 * time.Second) // Check every 3 seconds
+	go watcher.Start()
+
 	// API endpoint to get current track
 	http.HandleFunc("/api/current", handleCurrentTrack)
+
+	// Serve output folder (for artwork and text files)
+	http.Handle("/output/", http.StripPrefix("/output/", http.FileServer(http.Dir("./output"))))
 
 	// Serve static files from the web directory
 	http.Handle("/", http.FileServer(http.Dir("./web")))
 
 	port := "8080"
-	fmt.Printf("Server starting on http://localhost:%s\n", port)
+	fmt.Printf("Silk is running on http://localhost:%s\n", port)
+	fmt.Println("Auto-updating track info every 3 seconds...")
+	fmt.Println("Files are saved to the 'output' folder")
 
 	// Start the web server
 	if err := http.ListenAndServe(":"+port, nil); err != nil {

@@ -3,10 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Silk - Music Metadata</title>
+    <title>Silk - Now Playing</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f0f;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 500px;
+        }
+        
+        .artwork {
+            width: 300px;
+            height: 300px;
+            margin: 0 auto 30px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        
+        .artwork img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .track-info {
+            margin-bottom: 20px;
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .artist {
+            font-size: 20px;
+            color: #b3b3b3;
+            margin-bottom: 4px;
+        }
+        
+        .album {
+            font-size: 16px;
+            color: #808080;
+        }
+        
+        .status {
+            font-size: 14px;
+            color: #666;
+            margin-top: 30px;
+        }
+        
+        .status.playing {
+            color: #1db954;
+        }
+        
+        .no-track {
+            color: #666;
+            font-size: 18px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Silk is running</h1>
-    <p>If you see this, the server works!</p>
+    <div class="container">
+        <div class="artwork" id="artwork">
+            <img id="artworkImg" style="display:none;">
+        </div>
+        <div class="track-info">
+            <div class="title" id="title">No track playing</div>
+            <div class="artist" id="artist"></div>
+            <div class="album" id="album"></div>
+        </div>
+        <div class="status" id="status">Waiting for music...</div>
+    </div>
+
+    <script>
+        let lastTrack = null;
+
+        async function updateTrack() {
+            try {
+                const response = await fetch('/api/current');
+                if (!response.ok) {
+                    throw new Error('No track playing');
+                }
+                
+                const track = await response.json();
+                
+                // Only update if track changed
+                if (!lastTrack || 
+                    lastTrack.title !== track.title || 
+                    lastTrack.artist !== track.artist) {
+                    
+                    document.getElementById('title').textContent = track.title || 'Unknown';
+                    document.getElementById('artist').textContent = track.artist || 'Unknown Artist';
+                    document.getElementById('album').textContent = track.album || '';
+                    
+                    // Update artwork - just point to the file with cache busting
+                    const artworkImg = document.getElementById('artworkImg');
+                    if (track.artwork) {
+                        artworkImg.src = '/output/artwork.jpg?' + Date.now();
+                        artworkImg.style.display = 'block';
+                    } else {
+                        artworkImg.style.display = 'none';
+                    }
+                    
+                    const statusEl = document.getElementById('status');
+                    statusEl.textContent = track.isPlaying ? '▶ Playing' : '⏸ Paused';
+                    statusEl.className = track.isPlaying ? 'status playing' : 'status';
+                    
+                    lastTrack = track;
+                }
+            } catch (error) {
+                document.getElementById('title').textContent = 'No track playing';
+                document.getElementById('artist').textContent = '';
+                document.getElementById('album').textContent = '';
+                document.getElementById('artworkImg').style.display = 'none';
+                document.getElementById('status').textContent = 'Waiting for music...';
+                document.getElementById('status').className = 'status';
+                lastTrack = null;
+            }
+        }
+
+        // Update every 2 seconds
+        updateTrack();
+        setInterval(updateTrack, 2000);
+    </script>
 </body>
 </html>
