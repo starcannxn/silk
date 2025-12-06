@@ -74,6 +74,28 @@
             color: #1db954;
         }
         
+        .connection {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #1a1a1a;
+            border: 2px solid #333;
+        }
+        
+        .connection.connected {
+            border-color: #1db954;
+            color: #1db954;
+        }
+        
+        .connection.disconnected {
+            border-color: #e22134;
+            color: #e22134;
+        }
+        
         .no-track {
             color: #666;
             font-size: 18px;
@@ -81,6 +103,7 @@
     </style>
 </head>
 <body>
+    <div class="connection connected" id="connection">● Connected</div>
     <div class="container">
         <div class="artwork" id="artwork">
             <img id="artworkImg" style="display:none;">
@@ -95,6 +118,7 @@
 
     <script>
         let lastTrack = null;
+        let connectionStatus = document.getElementById('connection');
 
         async function updateTrack() {
             try {
@@ -105,22 +129,28 @@
                 
                 const track = await response.json();
                 
+                // Update connection status
+                connectionStatus.className = 'connection connected';
+                connectionStatus.textContent = '● Connected';
+                
                 // Only update if track changed
                 if (!lastTrack || 
                     lastTrack.title !== track.title || 
-                    lastTrack.artist !== track.artist) {
+                    lastTrack.artist !== track.artist ||
+                    lastTrack.isPlaying !== track.isPlaying) {
                     
                     document.getElementById('title').textContent = track.title || 'Unknown';
                     document.getElementById('artist').textContent = track.artist || 'Unknown Artist';
                     document.getElementById('album').textContent = track.album || '';
                     
-                    // Update artwork - just point to the file with cache busting
+                    // Update artwork - use placeholder if no artwork
                     const artworkImg = document.getElementById('artworkImg');
                     if (track.artwork) {
                         artworkImg.src = '/output/artwork.jpg?' + Date.now();
                         artworkImg.style.display = 'block';
                     } else {
-                        artworkImg.style.display = 'none';
+                        artworkImg.src = '/placeholder.svg';
+                        artworkImg.style.display = 'block';
                     }
                     
                     const statusEl = document.getElementById('status');
@@ -130,10 +160,15 @@
                     lastTrack = track;
                 }
             } catch (error) {
+                // Update connection status
+                connectionStatus.className = 'connection disconnected';
+                connectionStatus.textContent = '● Disconnected';
+                
                 document.getElementById('title').textContent = 'No track playing';
                 document.getElementById('artist').textContent = '';
                 document.getElementById('album').textContent = '';
-                document.getElementById('artworkImg').style.display = 'none';
+                document.getElementById('artworkImg').src = '/placeholder.svg';
+                document.getElementById('artworkImg').style.display = 'block';
                 document.getElementById('status').textContent = 'Waiting for music...';
                 document.getElementById('status').className = 'status';
                 lastTrack = null;

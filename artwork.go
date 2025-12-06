@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -29,6 +30,38 @@ func FetchArtwork(artist, track string) ([]byte, error) {
 		return nil, fmt.Errorf("artist and track required")
 	}
 
+	// Clean up artist name - remove common YouTube suffixes
+	artist = strings.TrimSuffix(artist, " - Topic")
+	artist = strings.TrimSpace(artist)
+
+	// Try normal search first
+	imgData, err := fetchFromLastFm(artist, track)
+	if err == nil {
+		return imgData, nil
+	}
+
+	// If failed and artist looks like a YouTube channel (contains certain keywords),
+	// try searching by track name only
+	artistLower := strings.ToLower(artist)
+	if strings.Contains(artistLower, "vevo") ||
+		strings.Contains(artistLower, "official") ||
+		strings.Contains(artistLower, "records") ||
+		strings.Contains(artistLower, "music") {
+		// Extract actual artist from track title if it contains "-"
+		if parts := strings.Split(track, "-"); len(parts) >= 2 {
+			possibleArtist := strings.TrimSpace(parts[0])
+			possibleTrack := strings.TrimSpace(parts[1])
+			imgData, err := fetchFromLastFm(possibleArtist, possibleTrack)
+			if err == nil {
+				return imgData, nil
+			}
+		}
+	}
+
+	return nil, err
+}
+
+func fetchFromLastFm(artist, track string) ([]byte, error) {
 	// Build Last.fm API URL
 	baseURL := "http://ws.audioscrobbler.com/2.0/"
 	params := url.Values{}
