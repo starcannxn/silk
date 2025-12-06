@@ -23,5 +23,28 @@ func SaveTrackToFile(track *Track) error {
 		return fmt.Errorf("failed to write file: %v", err)
 	}
 
+	// Save artwork if available
+	if track.Artwork != "" {
+		if err := saveArtwork(track.Artwork, outputDir); err != nil {
+			// Log error but don't fail
+			fmt.Printf("Warning: failed to save artwork: %v\n", err)
+		}
+	}
+
+	return nil
+}
+
+// saveArtwork saves the artwork image to output/artwork.jpg
+func saveArtwork(artworkData string, outputDir string) error {
+	if artworkData == "" {
+		return nil // No artwork to save
+	}
+
+	// artworkData is raw binary data
+	artworkPath := filepath.Join(outputDir, "artwork.jpg")
+	if err := os.WriteFile(artworkPath, []byte(artworkData), 0644); err != nil {
+		return fmt.Errorf("failed to write artwork: %v", err)
+	}
+
 	return nil
 }

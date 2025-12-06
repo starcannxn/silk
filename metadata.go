@@ -32,7 +32,6 @@ func GetCurrentTrack() (*Track, error) {
 // getCurrentTrackWindows reads metadata from Windows Media Control API
 func getCurrentTrackWindows() (*Track, error) {
 	// PowerShell command to get current media session info
-	// This reads from Windows' Global System Media Transport Controls (GSMTC)
 	psCommand := `Add-Type -AssemblyName System.Runtime.WindowsRuntime; $asTaskGeneric = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object { $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation' + [char]0x0060 + '1' })[0]; Function Await($WinRtTask, $ResultType) { $asTask = $asTaskGeneric.MakeGenericMethod($ResultType); $netTask = $asTask.Invoke($null, @($WinRtTask)); $netTask.Wait(-1) | Out-Null; $netTask.Result }; [Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager,Windows.Media.Control,ContentType=WindowsRuntime] | Out-Null; $sessionManager = Await ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager]::RequestAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager]); $session = $sessionManager.GetCurrentSession(); if ($session) { $mediaProperties = Await ($session.TryGetMediaPropertiesAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionMediaProperties]); $playbackInfo = $session.GetPlaybackInfo(); $output = @{ Title = $mediaProperties.Title; Artist = $mediaProperties.Artist; Album = $mediaProperties.AlbumTitle; IsPlaying = ($playbackInfo.PlaybackStatus -eq 4) }; [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; $output | ConvertTo-Json -Compress }`
 
 	// Execute PowerShell command with UTF-8 output encoding
@@ -55,13 +54,26 @@ func getCurrentTrackWindows() (*Track, error) {
 		return nil, fmt.Errorf("failed to parse media info: %v", err)
 	}
 
-	return &Track{
+	track := &Track{
 		Title:     result.Title,
 		Artist:    result.Artist,
 		Album:     result.Album,
-		Artwork:   "", // We'll add artwork download later
+		Artwork:   "",
 		IsPlaying: result.IsPlaying,
-	}, nil
+	}
+
+	// Try to fetch artwork from MusicBrainz (don't fail if it doesn't work)
+	if result.Artist != "" && result.Title != "" {
+		artworkData, err := FetchArtwork(result.Artist, result.Title)
+		if err == nil && len(artworkData) > 0 {
+			track.Artwork = string(artworkData)
+			fmt.Printf("Artwork fetched successfully (%d bytes)\n", len(artworkData))
+		} else if err != nil {
+			fmt.Printf("No artwork found: %v\n", err)
+		}
+	}
+
+	return track, nil
 }
 
 // getCurrentTrackLinux reads metadata from MPRIS (Linux)
