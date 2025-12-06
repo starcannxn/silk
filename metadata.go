@@ -62,14 +62,11 @@ func getCurrentTrackWindows() (*Track, error) {
 		IsPlaying: result.IsPlaying,
 	}
 
-	// Try to fetch artwork from MusicBrainz (don't fail if it doesn't work)
+	// Try to fetch artwork from Last.fm (don't fail if it doesn't work)
 	if result.Artist != "" && result.Title != "" {
 		artworkData, err := FetchArtwork(result.Artist, result.Title)
 		if err == nil && len(artworkData) > 0 {
 			track.Artwork = string(artworkData)
-			fmt.Printf("Artwork fetched successfully (%d bytes)\n", len(artworkData))
-		} else if err != nil {
-			fmt.Printf("No artwork found: %v\n", err)
 		}
 	}
 

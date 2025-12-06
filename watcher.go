@@ -59,7 +59,7 @@ func (w *Watcher) checkAndUpdate() {
 		if err := SaveTrackToFile(track); err != nil {
 			fmt.Printf("Error saving track: %v\n", err)
 		} else {
-			fmt.Printf("Updated files: %s - %s\n", track.Artist, track.Title)
+			fmt.Printf("Updated files: ✓")
 		}
 
 		w.lastTrack = track
