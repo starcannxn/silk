@@ -31,6 +31,12 @@ func handleCurrentTrack(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Save to file automatically
+	if err := SaveTrackToFile(track); err != nil {
+		// Log error but don't fail the request
+		fmt.Printf("Warning: failed to save track to file: %v\n", err)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(track)
 }

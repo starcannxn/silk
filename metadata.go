@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 	"runtime"
 )
@@ -32,10 +33,11 @@ func GetCurrentTrack() (*Track, error) {
 func getCurrentTrackWindows() (*Track, error) {
 	// PowerShell command to get current media session info
 	// This reads from Windows' Global System Media Transport Controls (GSMTC)
-	psCommand := `Add-Type -AssemblyName System.Runtime.WindowsRuntime; $asTaskGeneric = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object { $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation' + [char]0x0060 + '1' })[0]; Function Await($WinRtTask, $ResultType) { $asTask = $asTaskGeneric.MakeGenericMethod($ResultType); $netTask = $asTask.Invoke($null, @($WinRtTask)); $netTask.Wait(-1) | Out-Null; $netTask.Result }; [Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager,Windows.Media.Control,ContentType=WindowsRuntime] | Out-Null; $sessionManager = Await ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager]::RequestAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager]); $session = $sessionManager.GetCurrentSession(); if ($session) { $mediaProperties = Await ($session.TryGetMediaPropertiesAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionMediaProperties]); $playbackInfo = $session.GetPlaybackInfo(); $output = @{ Title = $mediaProperties.Title; Artist = $mediaProperties.Artist; Album = $mediaProperties.AlbumTitle; IsPlaying = ($playbackInfo.PlaybackStatus -eq 4) }; $output | ConvertTo-Json -Compress }`
+	psCommand := `Add-Type -AssemblyName System.Runtime.WindowsRuntime; $asTaskGeneric = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object { $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation' + [char]0x0060 + '1' })[0]; Function Await($WinRtTask, $ResultType) { $asTask = $asTaskGeneric.MakeGenericMethod($ResultType); $netTask = $asTask.Invoke($null, @($WinRtTask)); $netTask.Wait(-1) | Out-Null; $netTask.Result }; [Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager,Windows.Media.Control,ContentType=WindowsRuntime] | Out-Null; $sessionManager = Await ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager]::RequestAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionManager]); $session = $sessionManager.GetCurrentSession(); if ($session) { $mediaProperties = Await ($session.TryGetMediaPropertiesAsync()) ([Windows.Media.Control.GlobalSystemMediaTransportControlsSessionMediaProperties]); $playbackInfo = $session.GetPlaybackInfo(); $output = @{ Title = $mediaProperties.Title; Artist = $mediaProperties.Artist; Album = $mediaProperties.AlbumTitle; IsPlaying = ($playbackInfo.PlaybackStatus -eq 4) }; [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; $output | ConvertTo-Json -Compress }`
 
-	// Execute PowerShell command
-	cmd := exec.Command("powershell", "-NoProfile", "-NonInteractive", "-Command", psCommand)
+	// Execute PowerShell command with UTF-8 output encoding
+	cmd := exec.Command("powershell", "-NoProfile", "-NonInteractive", "-OutputFormat", "Text", "-Command", psCommand)
+	cmd.Env = append(os.Environ(), "POWERSHELL_OUTPUT_ENCODING=utf-8")
 	output, err := cmd.Output()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get media info: %v", err)
