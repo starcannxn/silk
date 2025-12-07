@@ -23,6 +23,7 @@ if exist "silk-tray-only-v%VERSION%.zip" del "silk-tray-only-v%VERSION%.zip"
 echo [1/3] Packaging silk-console-v%VERSION%...
 mkdir "silk-console-v%VERSION%"
 copy "..\silk.exe" "silk-console-v%VERSION%\" >nul
+copy "..\placeholder.jpg" "silk-console-v%VERSION%\" >nul
 xcopy "..\web" "silk-console-v%VERSION%\web\" /E /I /Y >nul
 copy "..\README.md" "silk-console-v%VERSION%\" >nul
 copy "..\LICENSE" "silk-console-v%VERSION%\" >nul
@@ -34,6 +35,7 @@ echo [2/3] Packaging silk-tray-v%VERSION%...
 mkdir "silk-tray-v%VERSION%"
 copy "..\silk-tray.exe" "silk-tray-v%VERSION%\" >nul
 copy "..\icon.ico" "silk-tray-v%VERSION%\" >nul
+copy "..\placeholder.jpg" "silk-tray-v%VERSION%\" >nul
 xcopy "..\web" "silk-tray-v%VERSION%\web\" /E /I /Y >nul
 copy "..\README.md" "silk-tray-v%VERSION%\" >nul
 copy "..\LICENSE" "silk-tray-v%VERSION%\" >nul
@@ -45,6 +47,7 @@ echo [3/3] Packaging silk-tray-only-v%VERSION%...
 mkdir "silk-tray-only-v%VERSION%"
 copy "..\silk-tray-only.exe" "silk-tray-only-v%VERSION%\" >nul
 copy "..\icon.ico" "silk-tray-only-v%VERSION%\" >nul
+copy "..\placeholder.jpg" "silk-tray-only-v%VERSION%\" >nul
 xcopy "..\web" "silk-tray-only-v%VERSION%\web\" /E /I /Y >nul
 copy "..\README.md" "silk-tray-only-v%VERSION%\" >nul
 copy "..\LICENSE" "silk-tray-only-v%VERSION%\" >nul

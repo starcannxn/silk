@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 )
@@ -23,11 +24,16 @@ func SaveTrackToFile(track *Track) error {
 		return fmt.Errorf("failed to write file: %v", err)
 	}
 
-	// Save artwork if available
+	// Save artwork if available, otherwise use placeholder
+	artworkPath := filepath.Join(outputDir, "artwork.jpg")
 	if track.Artwork != "" {
 		if err := saveArtwork(track.Artwork, outputDir); err != nil {
-			// Log error but don't fail
 			fmt.Printf("Warning: failed to save artwork: %v\n", err)
+		}
+	} else {
+		// Copy placeholder when no artwork
+		if err := copyPlaceholder(artworkPath); err != nil {
+			fmt.Printf("Warning: failed to copy placeholder: %v\n", err)
 		}
 	}
 
@@ -47,4 +53,25 @@ func saveArtwork(artworkData string, outputDir string) error {
 	}
 
 	return nil
+}
+
+// copyPlaceholder copies placeholder.jpg to the output folder
+func copyPlaceholder(destPath string) error {
+	// Open source file
+	srcFile, err := os.Open("placeholder.jpg")
+	if err != nil {
+		return fmt.Errorf("placeholder.jpg not found: %v", err)
+	}
+	defer srcFile.Close()
+
+	// Create destination file
+	destFile, err := os.Create(destPath)
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	// Copy contents
+	_, err = io.Copy(destFile, srcFile)
+	return err
 }
