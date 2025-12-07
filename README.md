@@ -10,7 +10,7 @@ A lightweight app that captures currently playing music metadata and saves it fo
 - ✅ **OBS-ready files** - Outputs to `nowplaying.txt` and `artwork.jpg`
 - ✅ **Multiple players** - Supports Spotify, Foobar2000, YouTube, and VLC
 - ✅ **Multiple modes** - Console, system tray, or background operation
-<!-- - ✅ **Cross-platform** - Windows and Linux support -->
+- ⌚ **Linux Support** - Coming soon
 
 ## Download & Install
 
@@ -64,7 +64,8 @@ Both will update automatically as songs change!
 Default port is `5555`. Change it in the source code (`main.go`, `main_tray.go`, `main_tray_only.go`) and rebuild.
 
 **Last.fm API Key:**  
-The app uses Last.fm to fetch album artwork. To use your own API key, edit `artwork.go` and replace the `LASTFM_API_KEY` constant.
+A Last.fm API key is included for convenience. The app works out of the box!  
+If you want to use your own key (optional), edit `artwork.go` and replace the `LASTFM_API_KEY` constant.
 
 ## Files & Folders
 
@@ -142,5 +143,5 @@ MIT License - feel free to use and modify!
 Built with Go and powered by:
 - Last.fm API for artwork
 - Windows Media Control API for metadata
-<!-- - MPRIS for Linux support -->
 - [systray](https://github.com/getlantern/systray) for system tray functionality
+<!-- - MPRIS for Linux support -->
