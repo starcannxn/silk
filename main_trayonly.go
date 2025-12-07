@@ -15,7 +15,7 @@ func main() {
 	port := "5555"
 
 	// Start the watcher in a goroutine
-	watcher := NewWatcher(3 * time.Second)
+	watcher := NewWatcher(2 * time.Second)
 	go watcher.Start()
 
 	// API endpoint to get current track

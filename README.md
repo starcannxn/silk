@@ -4,7 +4,7 @@ A lightweight app that captures currently playing music metadata and saves it fo
 
 ## Features
 
-- ✅ **Auto-updates** - Monitors track changes every 3 seconds
+- ✅ **Auto-updates** - Monitors track changes every 2 seconds
 - ✅ **Album artwork** - Fetches cover art from Last.fm
 - ✅ **Clean web UI** - View what's currently playing in your browser
 - ✅ **OBS-ready files** - Outputs to `nowplaying.txt` and `artwork.jpg`
