@@ -47,7 +47,24 @@ func (w *Watcher) Stop() {
 func (w *Watcher) checkAndUpdate() {
 	track, err := GetCurrentTrack()
 	if err != nil {
-		// No track playing or error - that's okay, just skip
+		// No track playing or error - update files to show disconnected state
+		disconnectedTrack := &Track{
+			Title:     "No track playing",
+			Artist:    "",
+			Album:     "",
+			Artwork:   "", // Empty means placeholder will be used
+			IsPlaying: false,
+		}
+
+		// Only update if state changed (avoid constant file writes)
+		if w.lastTrack != nil && w.lastTrack.Title != "No track playing" {
+			SaveTrackToFile(disconnectedTrack)
+			w.lastTrack = disconnectedTrack
+		} else if w.lastTrack == nil {
+			// First run with no track
+			SaveTrackToFile(disconnectedTrack)
+			w.lastTrack = disconnectedTrack
+		}
 		return
 	}
 
