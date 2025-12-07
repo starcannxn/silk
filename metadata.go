@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"syscall"
 )
 
 // Track represents the currently playing track
@@ -37,6 +38,15 @@ func getCurrentTrackWindows() (*Track, error) {
 	// Execute PowerShell command with UTF-8 output encoding
 	cmd := exec.Command("powershell", "-NoProfile", "-NonInteractive", "-OutputFormat", "Text", "-Command", psCommand)
 	cmd.Env = append(os.Environ(), "POWERSHELL_OUTPUT_ENCODING=utf-8")
+
+	// Hide the PowerShell window (important for tray versions)
+	if runtime.GOOS == "windows" {
+		cmd.SysProcAttr = &syscall.SysProcAttr{
+			HideWindow:    true,
+			CreationFlags: 0x08000000, // CREATE_NO_WINDOW
+		}
+	}
+
 	output, err := cmd.Output()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get media info: %v", err)

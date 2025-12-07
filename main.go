@@ -1,3 +1,6 @@
+//go:build !tray && !trayonly
+// +build !tray,!trayonly
+
 package main
 
 import (
@@ -10,7 +13,7 @@ import (
 
 func main() {
 	// Start the watcher in a goroutine (runs in background)
-	watcher := NewWatcher(3 * time.Second) // Check every 3 seconds
+	watcher := NewWatcher(2 * time.Second) // Check every 2 seconds
 	go watcher.Start()
 
 	// API endpoint to get current track
@@ -31,7 +34,7 @@ func main() {
 	fmt.Println("╚════════════════════════════════════════╝")
 	fmt.Println()
 	fmt.Printf("→ Server running at %s\n", url)
-	fmt.Println("→ Auto-updating every 3 seconds")
+	fmt.Println("→ Auto-updating every 2 seconds")
 	fmt.Println("→ Files saved to './output' folder")
 	fmt.Println()
 	fmt.Println("Press Ctrl+C to stop")
