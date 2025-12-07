@@ -22,7 +22,7 @@ func main() {
 	// Serve static files from the web directory
 	http.Handle("/", http.FileServer(http.Dir("./web")))
 
-	port := "8080"
+	port := "5555"
 	url := fmt.Sprintf("http://localhost:%s", port)
 
 	// Nice startup message
